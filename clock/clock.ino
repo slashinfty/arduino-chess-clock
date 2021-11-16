@@ -4,7 +4,7 @@ int minus5 = 2;
 int minus1 = 3;
 int enter = 4;
 int plus1 = 5;
-int plus5 = 6
+int plus5 = 6;
 int player2 = 7;
 int player1 = 8;
 int CLK2 = 9;
@@ -25,7 +25,7 @@ unsigned long timeStart = 0;
 unsigned long turnStart = 0;
 
 void display(TM1637 tm, unsigned long ms, bool point = true) {
-	int sec = ms / 1000;
+	int sec = int(ms / 1000UL);
 	if (point) {
 		tm.point(1);
 		int min = sec / 60;
@@ -46,34 +46,30 @@ void display(TM1637 tm, unsigned long ms, bool point = true) {
 void adjust(int opt, unsigned long val) {
 	switch (opt) {
 		case 0:
-			p1time += val * 60000;
+			p1time += val * 60000UL;
 			display(TM1, p1time);
 			break;
 		case 1:
-			p1time += val * 1000;
+			p1time += val * 1000UL;
 			display(TM1, p1time);
 			break;
 		case 2:
-			p2time += val * 60000;
+			p2time += val * 60000UL;
 			display(TM2, p2time);
 			break;
 		case 3:
-			p2time += val * 1000;
+			p2time += val * 1000UL;
 			display(TM2, p2time);
 			break;
 		case 4:
-			p1bonus += val * 1000;
+			p1bonus += val * 1000UL;
 			display(TM1, p1bonus, false);
 			break;
 		case 5:
-			p2bonus += val * 1000;
+			p2bonus += val * 1000UL;
 			display(TM2, p2bonus, false);
 			break;
 	}
-}
-
-void turn(int player) {
-	
 }
 
 void setup() {
