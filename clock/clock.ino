@@ -25,6 +25,7 @@ unsigned long timeStart = 0;
 unsigned long turnStart = 0;
 
 void display(TM1637 tm, unsigned long ms, bool point = true) {
+  tm.clearDisplay();  
 	int sec = int(ms / 1000UL);
 	if (point) {
 		tm.point(1);
@@ -43,30 +44,31 @@ void display(TM1637 tm, unsigned long ms, bool point = true) {
 	tm.display(3, sec % 10);
 }
 
-void adjust(int opt, unsigned long val) {
+void adjust(int opt, int val) {
+  bool neg = val < 0;
 	switch (opt) {
 		case 0:
-			p1time += val * 60000UL;
+			p1time = neg ? p1time - ((unsigned long)(-val) * 60000UL) : p1time + ((unsigned long)val * 60000UL);
 			display(TM1, p1time);
 			break;
 		case 1:
-			p1time += val * 1000UL;
+			p1time = neg ? p1time - ((unsigned long)(-val) * 1000UL) : p1time + ((unsigned long)val * 1000UL);
 			display(TM1, p1time);
 			break;
 		case 2:
-			p2time += val * 60000UL;
+			p2time = neg ? p2time - ((unsigned long)(-val) * 60000UL) : p2time + ((unsigned long)val * 60000UL);
 			display(TM2, p2time);
 			break;
 		case 3:
-			p2time += val * 1000UL;
+			p2time = neg ? p2time - ((unsigned long)(-val) * 1000UL) : p2time + ((unsigned long)val * 1000UL);
 			display(TM2, p2time);
 			break;
 		case 4:
-			p1bonus += val * 1000UL;
+			p1bonus = neg ? p1bonus - ((unsigned long)(-val) * 1000UL) : p1bonus + ((unsigned long)val * 1000UL);
 			display(TM1, p1bonus, false);
 			break;
 		case 5:
-			p2bonus += val * 1000UL;
+			p2bonus = neg ? p2bonus - ((unsigned long)(-val) * 1000UL) : p2bonus + ((unsigned long)val * 1000UL);
 			display(TM2, p2bonus, false);
 			break;
 	}
@@ -132,7 +134,7 @@ void loop() {
 			timeStart = p1time;
 			turnStart = millis();
 		}
-	delay(100);
+	delay(200);
 	}
 	else {
 		while (p1time > 0 && p2time > 0) {
