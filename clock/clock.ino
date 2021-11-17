@@ -39,22 +39,17 @@ void display(TM1637 tm, unsigned long ms, bool bonus = false) {
 	int sec = int(ms / 1000UL);
 	int min = sec / 60;
 	sec = sec % 60;
-	// don't display 0:XX when time is below a minute
 	if (min > 0) {
-		tm.point(true);
+		tm.point(1);
 		tm.display(1, min % 10);
 		if (min > 9) {
 			tm.display(0, min / 10 % 10);
 		}
-    tm.display(2, sec / 10 % 10);    
 	}
-	// always display : for active timers
 	else if (bonus == false) {
-		tm.point(true);
-		tm.display(2, sec / 10 % 10);
+		tm.point(1);
 	}
-	// don't display 0X for bonus time
-	else if (sec > 9) {
+	if (sec > 9 || bonus == false) {
 		tm.display(2, sec / 10 % 10);
 	}
 	tm.display(3, sec % 10);
