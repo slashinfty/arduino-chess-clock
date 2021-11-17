@@ -32,7 +32,7 @@ unsigned long turnStart = 0UL; // millis() for the start of a turn
 int lastTime = 0; // seconds of player's timer when loop last ran
 
 // function to display time
-void display(TM1637 tm, unsigned long ms, bool bonus = false) {
+void display(TM1637 tm, unsigned long ms) {
     // clear display before displaying new values
     // i.e. if 10 minutes goes to 9 minutes, won't display 19:00
     tm.clearDisplay();
@@ -57,32 +57,32 @@ void display(TM1637 tm, unsigned long ms, bool bonus = false) {
 // equations are a little ugly to ensure arithmetic on unsigned longs is done as expected (always non-negative)
 // option order: player one minutes, player one seconds, player two minutes, player two seconds, player one bonus, player two bonus
 void adjust(int opt, int val) {
-    // boolean check to ensure we don't try to make an unsigned long negative
     bool pos = val > 0;
+	unsigned long mult = pos ? (unsigned long)val : (unsigned long)(-val);
     switch (opt) {
         case 0:
-            p1time = pos ? p1time + ((unsigned long)val * 60000UL) : (unsigned long)(-val) * 60000UL > p1time ? 0 : p1time - ((unsigned long)(-val) * 60000UL);
+            p1time = pos ? p1time + (mult * 60000UL) : mult * 60000UL > p1time ? 0 : p1time - (mult * 60000UL);
             display(TM1, p1time);
             break;
         case 1:
-            p1time = pos ? p1time + ((unsigned long)val * 1000UL) : (unsigned long)(-val) * 1000UL > p1time ? 0 : p1time - ((unsigned long)(-val) * 1000UL);
+            p1time = pos ? p1time + (mult * 1000UL) : mult * 1000UL > p1time ? 0 : p1time - (mult * 1000UL);
             display(TM1, p1time);
             break;
         case 2:
-            p2time = pos ? p2time + ((unsigned long)val * 60000UL) : (unsigned long)(-val) * 60000UL > p2time ? 0 : p2time - ((unsigned long)(-val) * 60000UL);
+            p2time = pos ? p2time + (mult * 60000UL) : mult * 60000UL > p2time ? 0 : p2time - (mult * 60000UL);
             display(TM2, p2time);
             break;
         case 3:
-            p2time = pos ? p2time + ((unsigned long)val * 1000UL) : (unsigned long)(-val) * 1000UL > p2time ? 0 : p2time - ((unsigned long)(-val) * 1000UL);
+            p2time = pos ? p2time + (mult * 1000UL) : mult * 1000UL > p2time ? 0 : p2time - (mult * 1000UL);
             display(TM2, p2time);
             break;
         case 4:
-            p1bonus = pos ? p1bonus + ((unsigned long)val * 1000UL) : (unsigned long)(-val) * 1000UL > p1bonus ? 0 : p1bonus - ((unsigned long)(-val) * 1000UL);
-            display(TM1, p1bonus, true);
+            p1bonus = pos ? p1bonus + (mult * 1000UL) : mult * 1000UL > p1bonus ? 0 : p1bonus - (mult * 1000UL);
+            display(TM1, p1bonus);
             break;
         case 5:
-            p2bonus = pos ? p2bonus + ((unsigned long)val * 1000UL) : (unsigned long)(-val) * 1000UL > p2bonus ? 0 : p2bonus - ((unsigned long)(-val) * 1000UL);
-            display(TM2, p2bonus, true);
+            p2bonus = pos ? p2bonus + (mult * 1000UL) : mult * 1000UL > p2bonus ? 0 : p2bonus - (mult * 1000UL);
+            display(TM2, p2bonus);
             break;
     }
 }
@@ -143,8 +143,8 @@ void loop() {
             // keep set between 0 and 5, inclusively
             set = (set + 1) % 6;
             if (set == 4) {
-                display(TM1, p1bonus, true);
-                display(TM2, p2bonus, true);
+                display(TM1, p1bonus);
+                display(TM2, p2bonus);
             }
             else if (set == 0) {
                 display(TM1, p1time);
