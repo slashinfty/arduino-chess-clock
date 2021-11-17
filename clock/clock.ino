@@ -178,6 +178,7 @@ void loop() {
 						break;
 					}
 				}
+				timeStart = turn == 1 ? p1time : p2time;
 				turnStart = millis();
 			}
 			// run timer for player one
