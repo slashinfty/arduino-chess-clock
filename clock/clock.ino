@@ -9,6 +9,8 @@ int plus1 = 5; // adds 1 to current setting
 int plus5 = 6; // adds 5 to current setting
 int player2 = 7; // stops player two's timer and starts player one's timer
 int player1 = 8; // stops player one's timer and starts player two's timer
+int p1led = 14; // LED for player one
+int p2led = 15; // LED for player two
 
 // timers
 int CLK2 = 9;
@@ -91,6 +93,17 @@ void adjust(int opt, int val) {
 	}
 }
 
+void ledToggle(int player) {
+	if (player == 1) {
+		digitalWrite(p1led, HIGH);
+		digitalWrite(p2led, LOW);
+	}
+	else {
+		digitalWrite(p2led, HIGH);
+		digitalWrite(p1led, LOW);
+	}
+} 
+
 void setup() {
 	// initialize displays
 	TM1.init();
@@ -108,6 +121,8 @@ void setup() {
 	pinMode(plus5, INPUT);
 	pinMode(player1, INPUT);
 	pinMode(player2, INPUT);
+	pinMode(p1led, OUTPUT);
+	pinMode(p2led, OUTPUT);
 }
 
 void loop() {
@@ -149,6 +164,7 @@ void loop() {
 				display(TM2, p2time);
 			}
 			turn = 2;
+			ledToggle(2);
 			timeStart = p2time;
 			turnStart = millis();
 			lastTime = int(timeStart / 1000UL);
@@ -159,6 +175,7 @@ void loop() {
 				display(TM2, p2time);
 			}
 			turn = 1;
+			ledToggle(1);
 			timeStart = p1time;
 			turnStart = millis();
 			lastTime = int(timeStart / 1000UL);
@@ -188,6 +205,7 @@ void loop() {
 				if (digitalRead(player1) == HIGH) {
 					p1time += p1bonus;
 					turn = 2;
+					ledToggle(2);
 					timeStart = p2time;
 					turnStart = millis();
 					lastTime = int(timeStart / 1000UL);
@@ -205,6 +223,7 @@ void loop() {
 				if (digitalRead(player2) == HIGH) {
 					p2time += p2bonus;
 					turn = 1;
+					ledToggle(1);
 					timeStart = p1time;
 					turnStart = millis();
 					lastTime = int(timeStart / 1000UL);
