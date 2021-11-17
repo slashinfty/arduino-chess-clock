@@ -4,7 +4,7 @@
 // pin numbers
 int minus5 = 2; // subtracts 5 from current setting
 int minus1 = 3; // subtracts 1 from current setting
-int enter = 4; // move to next setting or pause active timer
+int enter = 4; // moves to next setting or pauses active timer
 int plus1 = 5; // adds 1 to current setting
 int plus5 = 6; // adds 5 to current setting
 int player2 = 7; // stops player two's timer and starts player one's timer
@@ -19,15 +19,15 @@ TM1637 TM1(CLK1, DIO1);
 TM1637 TM2(CLK2, DIO2);
 
 // global variables
-int turn = 0;
-int set = 0;
-unsigned long p1time = 600000;
-unsigned long p2time = 600000;
-unsigned long p1bonus = 0;
-unsigned long p2bonus = 0;
-unsigned long timeStart = 0;
-unsigned long turnStart = 0;
-int lastTime = 0;
+int turn = 0; // 0 for setup, 1 for player one's turn, 2 for player two's turn
+int set = 0; // 0-5, inclusive
+unsigned long p1time = 600000; // milliseconds for player one's timer
+unsigned long p2time = 600000; // milliseconds for player two's timer
+unsigned long p1bonus = 0; // milliseconds for player one's bonus time
+unsigned long p2bonus = 0; // milliseconds for player two's bonus time
+unsigned long timeStart = 0; // milliseconds for player's timer at the start of a turn
+unsigned long turnStart = 0; // millis() for the start of a turn
+int lastTime = 0; // seconds of player's timer when loop last ran
 
 // function to display time
 void display(TM1637 tm, unsigned long ms, bool bonus = false) {
@@ -58,8 +58,10 @@ void display(TM1637 tm, unsigned long ms, bool bonus = false) {
 }
 
 // function to change time controls
+// equations are a little ugly to ensure arithmetic on unsigned longs is done as expected (always non-negative)
 // option order: player one minutes, player one seconds, player two minutes, player two seconds, player one bonus, player two bonus
 void adjust(int opt, int val) {
+	// boolean check to ensure we don't try to make an unsigned long negative
 	bool pos = val > 0;
 	switch (opt) {
 		case 0:
@@ -128,6 +130,7 @@ void loop() {
 			delay(250);
 		}
 		else if (digitalRead(enter) == HIGH) {
+			// keep set between 0 and 5, inclusively
 			set = (set + 1) % 6;
 			if (set == 4) {
 				display(TM1, p1bonus, false);
