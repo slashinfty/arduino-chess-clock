@@ -23,24 +23,26 @@ unsigned long p1bonus = 0;
 unsigned long p2bonus = 0;
 unsigned long timeStart = 0;
 unsigned long turnStart = 0;
+int lastTime = 0;
 
-void display(TM1637 tm, unsigned long ms, bool point = true) {
+void display(TM1637 tm, unsigned long ms, bool bonus = false) {
 	tm.clearDisplay();  
 	int sec = int(ms / 1000UL);
 	int min = sec / 60;
 	sec = sec % 60;
-	if (point) {
+	if (min > 0) {
 		tm.point(1);
-		if (min != 0) {
-			tm.display(1, min % 10);
+		tm.display(1, min % 10);
+		if (min > 9) {
 			tm.display(0, min / 10 % 10);
 		}
+	}
+	else if (!bonus) {
+		tm.point(1);
 		tm.display(2, sec / 10 % 10);
 	}
-	else {
-		if (sec / 10 % 10 != 0) {
-			tm.display(2, sec / 10 % 10);
-		}
+	else if (sec > 9) {
+		tm.display(2, sec / 10 % 10);
 	}
 	tm.display(3, sec % 10);
 }
@@ -66,11 +68,11 @@ void adjust(int opt, int val) {
 			break;
 		case 4:
 			p1bonus = pos ? p1bonus + ((unsigned long)val * 1000UL) : (unsigned long)(-val) * 1000UL > p1bonus ? 0 : p1bonus - ((unsigned long)(-val) * 1000UL);
-			display(TM1, p1bonus, false);
+			display(TM1, p1bonus, true);
 			break;
 		case 5:
 			p2bonus = pos ? p2bonus + ((unsigned long)val * 1000UL) : (unsigned long)(-val) * 1000UL > p2bonus ? 0 : p2bonus - ((unsigned long)(-val) * 1000UL);
-			display(TM2, p2bonus, false);
+			display(TM2, p2bonus, true);
 			break;
 	}
 }
@@ -96,15 +98,19 @@ void loop() {
 	if (turn == 0) {
 		if (digitalRead(plus5) == HIGH) {
 			adjust(set, 5);
+			delay(250);
 		}
 		else if (digitalRead(plus1) == HIGH) {
 			adjust(set, 1);
+			delay(250);
 		}
 		else if (digitalRead(minus1) == HIGH) {
-			adjust(set, -1);		
+			adjust(set, -1);
+			delay(250);	
 		}
 		else if (digitalRead(minus5) == HIGH) {
 			adjust(set, -5);
+			delay(250);
 		}
 		else if (digitalRead(enter) == HIGH) {
 			set = (set + 1) % 6;
@@ -116,6 +122,7 @@ void loop() {
 				display(TM1, p1time);
 				display(TM2, p2time);
 			}
+			delay(250);
 		}
 		else if (digitalRead(player1) == HIGH) {
 			if (set >= 3) {
@@ -125,6 +132,7 @@ void loop() {
 			turn = 2;
 			timeStart = p2time;
 			turnStart = millis();
+			lastTime = int(timeStart / 1000UL);
 		}
 		else if (digitalRead(player2) == HIGH) {
 			if (set >= 3) {
@@ -134,31 +142,49 @@ void loop() {
 			turn = 1;
 			timeStart = p1time;
 			turnStart = millis();
+			lastTime = int(timeStart / 1000UL);
 		}
-		delay(200);
 	}
 	else {
 		while (p1time > 0 && p2time > 0) {
 			unsigned long now = millis();
 			unsigned long timeSpent = now - turnStart;
-			if (turn == 1) {
+			if (digitalRead(enter) == HIGH) {
+				delay(1000);
+				while (true) {
+					if (digitalRead(enter) == HIGH) {
+						delay(300);						
+						break;
+					}
+				}
+				turnStart = millis();
+			}
+			else if (turn == 1) {
 				p1time = (timeSpent > timeStart) ? 0 : timeStart - timeSpent;
-				display(TM1, p1time);
 				if (digitalRead(player1) == HIGH) {
 					p1time += p1bonus;
 					turn = 2;
 					timeStart = p2time;
 					turnStart = millis();
+					lastTime = int(timeStart / 1000UL);
+				}
+				if (int(p1time / 1000UL) != lastTime || turn == 2) {				
+					display(TM1, p1time);
+					lastTime = int(p1time / 1000UL);
 				}
 			}
 			else {
 				p2time = (timeSpent > timeStart) ? 0 : timeStart - timeSpent;
-				display(TM2, p2time);
 				if (digitalRead(player2) == HIGH) {
 					p2time += p2bonus;
 					turn = 1;
 					timeStart = p1time;
 					turnStart = millis();
+					lastTime = int(timeStart / 1000UL);
+				}
+				if (int(p2time / 1000UL) != lastTime || turn == 1) {				
+					display(TM2, p2time);
+					lastTime = int(p2time / 1000UL);
 				}
 			}
 		}
