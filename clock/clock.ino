@@ -41,15 +41,13 @@ void display(TM1637 tm, unsigned long ms, bool bonus = false) {
 	sec = sec % 60;
 	if (min > 0) {
 		tm.point(1);
-		tm.display(1, min % 10);
 		if (min > 9) {
 			tm.display(0, min / 10 % 10);
 		}
+    tm.display(1, min % 10);
+    tm.display(2, sec / 10 % 10);
 	}
-	else if (bonus == false) {
-		tm.point(1);
-	}
-	if (sec > 9 || bonus == false) {
+	else if (sec > 9) {
 		tm.display(2, sec / 10 % 10);
 	}
 	tm.display(3, sec % 10);
@@ -89,6 +87,7 @@ void adjust(int opt, int val) {
 	}
 }
 
+// function to light LED for player whose turn it is
 void ledToggle(int player) {
 	if (player == 1) {
 		digitalWrite(p1led, HIGH);
@@ -232,6 +231,8 @@ void loop() {
 			}
 		}
 		// exit when game has finished
+    digitalWrite(p1led, LOW);
+    digitalWrite(p2led, LOW);
 		exit(0);
 	}
 }
