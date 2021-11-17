@@ -1,20 +1,24 @@
+// Grove_4Digital_Display library
 #include <TM1637.h>
 
-int minus5 = 2;
-int minus1 = 3;
-int enter = 4;
-int plus1 = 5;
-int plus5 = 6;
-int player2 = 7;
-int player1 = 8;
+// pin numbers
+int minus5 = 2; // subtracts 5 from current setting
+int minus1 = 3; // subtracts 1 from current setting
+int enter = 4; // move to next setting or pause active timer
+int plus1 = 5; // adds 1 to current setting
+int plus5 = 6; // adds 5 to current setting
+int player2 = 7; // stops player two's timer and starts player one's timer
+int player1 = 8; // stops player one's timer and starts player two's timer
+
+// timers
 int CLK2 = 9;
 int DIO2 = 10;
 int CLK1 = 11;
 int DIO1 = 12;
-
 TM1637 TM1(CLK1, DIO1);
 TM1637 TM2(CLK2, DIO2);
 
+// global variables
 int turn = 0;
 int set = 0;
 unsigned long p1time = 600000;
@@ -25,11 +29,15 @@ unsigned long timeStart = 0;
 unsigned long turnStart = 0;
 int lastTime = 0;
 
+// function to display time
 void display(TM1637 tm, unsigned long ms, bool bonus = false) {
+	// clear display before displaying new values
+	// i.e. if 10 minutes goes to 9 minutes, won't display 19:00
 	tm.clearDisplay();  
 	int sec = int(ms / 1000UL);
 	int min = sec / 60;
 	sec = sec % 60;
+	// don't display 0:XX when time is below a minute
 	if (min > 0) {
 		tm.point(1);
 		tm.display(1, min % 10);
@@ -37,16 +45,20 @@ void display(TM1637 tm, unsigned long ms, bool bonus = false) {
 			tm.display(0, min / 10 % 10);
 		}
 	}
+	// always display : for active timers
 	else if (!bonus) {
 		tm.point(1);
 		tm.display(2, sec / 10 % 10);
 	}
+	// don't display 0X for bonus time
 	else if (sec > 9) {
 		tm.display(2, sec / 10 % 10);
 	}
 	tm.display(3, sec % 10);
 }
 
+// function to change time controls
+// option order: player one minutes, player one seconds, player two minutes, player two seconds, player one bonus, player two bonus
 void adjust(int opt, int val) {
 	bool pos = val > 0;
 	switch (opt) {
@@ -78,6 +90,7 @@ void adjust(int opt, int val) {
 }
 
 void setup() {
+	// initialize displays
 	TM1.init();
 	TM1.set(2);
 	display(TM1, p1time);
@@ -85,6 +98,7 @@ void setup() {
 	TM2.set(2);
 	display(TM2, p2time);
 
+	// set pins
 	pinMode(minus5, INPUT);
 	pinMode(minus1, INPUT);
 	pinMode(enter, INPUT);
@@ -95,6 +109,7 @@ void setup() {
 }
 
 void loop() {
+	// read buttons to set time controls
 	if (turn == 0) {
 		if (digitalRead(plus5) == HIGH) {
 			adjust(set, 5);
@@ -124,6 +139,7 @@ void loop() {
 			}
 			delay(250);
 		}
+		// if player one or player two is pressed, start the timer for the other player
 		else if (digitalRead(player1) == HIGH) {
 			if (set >= 3) {
 				display(TM1, p1time);
@@ -146,9 +162,11 @@ void loop() {
 		}
 	}
 	else {
+		// loop for displaying time while active
 		while (p1time > 0 && p2time > 0) {
 			unsigned long now = millis();
 			unsigned long timeSpent = now - turnStart;
+			// pause timers
 			if (digitalRead(enter) == HIGH) {
 				delay(1000);
 				while (true) {
@@ -159,8 +177,10 @@ void loop() {
 				}
 				turnStart = millis();
 			}
+			// run timer for player one
 			else if (turn == 1) {
 				p1time = (timeSpent > timeStart) ? 0 : timeStart - timeSpent;
+				// when player one presses their button
 				if (digitalRead(player1) == HIGH) {
 					p1time += p1bonus;
 					turn = 2;
@@ -168,13 +188,16 @@ void loop() {
 					turnStart = millis();
 					lastTime = int(timeStart / 1000UL);
 				}
+				// only display time if the seconds are different
 				if (int(p1time / 1000UL) != lastTime || turn == 2) {				
 					display(TM1, p1time);
 					lastTime = int(p1time / 1000UL);
 				}
 			}
+			// run timer for player two
 			else {
 				p2time = (timeSpent > timeStart) ? 0 : timeStart - timeSpent;
+				// when player two presses their button
 				if (digitalRead(player2) == HIGH) {
 					p2time += p2bonus;
 					turn = 1;
@@ -182,12 +205,14 @@ void loop() {
 					turnStart = millis();
 					lastTime = int(timeStart / 1000UL);
 				}
+				// only display time if the seconds are different
 				if (int(p2time / 1000UL) != lastTime || turn == 1) {				
 					display(TM2, p2time);
 					lastTime = int(p2time / 1000UL);
 				}
 			}
 		}
+		// exit when game has finished
 		exit(0);
 	}
 }
