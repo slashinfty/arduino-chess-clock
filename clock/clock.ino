@@ -23,12 +23,12 @@ TM1637 TM2(CLK2, DIO2);
 // global variables
 int turn = 0; // 0 for setup, 1 for player one's turn, 2 for player two's turn
 int set = 0; // 0-5, inclusive
-unsigned long p1time = 600000; // milliseconds for player one's timer
-unsigned long p2time = 600000; // milliseconds for player two's timer
-unsigned long p1bonus = 0; // milliseconds for player one's bonus time
-unsigned long p2bonus = 0; // milliseconds for player two's bonus time
-unsigned long timeStart = 0; // milliseconds for player's timer at the start of a turn
-unsigned long turnStart = 0; // millis() for the start of a turn
+unsigned long p1time = 600000UL; // milliseconds for player one's timer
+unsigned long p2time = 600000UL; // milliseconds for player two's timer
+unsigned long p1bonus = 0UL; // milliseconds for player one's bonus time
+unsigned long p2bonus = 0UL; // milliseconds for player two's bonus time
+unsigned long timeStart = 0UL; // milliseconds for player's timer at the start of a turn
+unsigned long turnStart = 0UL; // millis() for the start of a turn
 int lastTime = 0; // seconds of player's timer when loop last ran
 
 // function to display time
@@ -41,15 +41,16 @@ void display(TM1637 tm, unsigned long ms, bool bonus = false) {
 	sec = sec % 60;
 	// don't display 0:XX when time is below a minute
 	if (min > 0) {
-		tm.point(1);
+		tm.point(true);
 		tm.display(1, min % 10);
 		if (min > 9) {
 			tm.display(0, min / 10 % 10);
 		}
+    tm.display(2, sec / 10 % 10);    
 	}
 	// always display : for active timers
-	else if (!bonus) {
-		tm.point(1);
+	else if (bonus == false) {
+		tm.point(true);
 		tm.display(2, sec / 10 % 10);
 	}
 	// don't display 0X for bonus time
@@ -105,7 +106,7 @@ void ledToggle(int player) {
 } 
 
 void setup() {
-	// initialize displays
+  // initialize displays
 	TM1.init();
 	TM1.set(2);
 	display(TM1, p1time);
@@ -148,8 +149,8 @@ void loop() {
 			// keep set between 0 and 5, inclusively
 			set = (set + 1) % 6;
 			if (set == 4) {
-				display(TM1, p1bonus, false);
-				display(TM2, p2bonus, false);
+				display(TM1, p1bonus, true);
+				display(TM2, p2bonus, true);
 			}
 			else if (set == 0) {
 				display(TM1, p1time);
