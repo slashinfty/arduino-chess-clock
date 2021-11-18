@@ -20,3 +20,11 @@ A simple chess clock driven by an Arduino Nano with TM1637 4-digit 7-segment dis
 - 7x momentary push buttons
 - 1x 9V battery connector
 - 1x stripboard/veroboard
+
+## Schematic & Stripboard
+![Schematic](images/schematic.png)
+
+![Stripboard layout](images/stripboard.png)
+
+## Case Design
+
