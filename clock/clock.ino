@@ -58,7 +58,7 @@ void display(TM1637 tm, unsigned long ms) {
 // option order: player one minutes, player one seconds, player two minutes, player two seconds, player one bonus, player two bonus
 void adjust(int opt, int val) {
     bool pos = val > 0;
-	unsigned long mult = pos ? (unsigned long)val : (unsigned long)(-val);
+    unsigned long mult = pos ? (unsigned long)val : (unsigned long)(-val);
     switch (opt) {
         case 0:
             p1time = pos ? p1time + (mult * 60000UL) : mult * 60000UL > p1time ? 0 : p1time - (mult * 60000UL);
