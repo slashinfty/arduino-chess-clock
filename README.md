@@ -1,6 +1,12 @@
 # Flagged
 A simple chess clock driven by an Arduino Nano with TM1637 4-digit 7-segment displays.
 
+## Organization
+- `clock/` contains the Arduino code
+- `diylc/` contains the DIY Layout Creator files (schematic & stripboard)
+- `images/` contains all images for the README
+- `prints/` contains the STL files for the case
+
 ## Bill of Materials
 - 1x Arduino Nano
 - 2x TM1637 4-digit displays
