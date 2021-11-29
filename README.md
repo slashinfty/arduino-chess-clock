@@ -18,8 +18,10 @@ Note: requires the Arduino library `Grove_4Digital_Display`.
 - 7x momentary push buttons
 - 1x SPST switch (optional - on/off switch)
 
-## Schematic & Stripboard
+## Schematic
 ![Schematic](images/schematic.png)
 
 ## Case Design
+Designed in Tinkercad, sliced with Cura, and printed in PLA+ on a CR-10 Mini.
 
+Uses tactile switch buttons and keyboard switches, along with a 9V battery snap connector.
