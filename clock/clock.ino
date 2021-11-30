@@ -30,6 +30,7 @@ unsigned long p2bonus = 0UL; // milliseconds for player two's bonus time
 unsigned long timeStart = 0UL; // milliseconds for player's timer at the start of a turn
 unsigned long turnStart = 0UL; // millis() for the start of a turn
 int lastTime = 0; // seconds of player's timer when loop last ran
+bool delay = false; // whether it is delay or bonus time
 
 // function to display time
 void display(TM1637 tm, unsigned long ms) {
@@ -53,6 +54,19 @@ void display(TM1637 tm, unsigned long ms) {
     tm.display(3, sec % 10);
 }
 
+// function to display 'b' or 'd' to signify bonus or delay
+void alphaDisplay() {
+    TM1.clearDisplay();
+    TM2.clearDisplay();
+    if (delay == true) {
+        TM1.display(3, 13);
+        TM2.display(3, 13);
+    } else {
+        TM1.display(0, 11);
+        TM2.display(0, 11);
+    }
+}
+
 // function to change time controls
 // equations are a little ugly to ensure arithmetic on unsigned longs is done as expected (always non-negative)
 // option order: player one minutes, player one seconds, player two minutes, player two seconds, player one bonus, player two bonus
@@ -62,28 +76,37 @@ void adjust(int opt, int val) {
     switch (opt) {
         case 0:
             p1time = pos ? p1time + (mult * 60000UL) : mult * 60000UL > p1time ? 0 : p1time - (mult * 60000UL);
+            p1time = p1time > 5999000UL ? 5999000UL : p1time;
             display(TM1, p1time);
             break;
         case 1:
             p1time = pos ? p1time + (mult * 1000UL) : mult * 1000UL > p1time ? 0 : p1time - (mult * 1000UL);
+            p1time = p1time > 5999000UL ? 5999000UL : p1time;
             display(TM1, p1time);
             break;
         case 2:
             p2time = pos ? p2time + (mult * 60000UL) : mult * 60000UL > p2time ? 0 : p2time - (mult * 60000UL);
+            p2time = p2time > 5999000UL ? 5999000UL : p2time;
             display(TM2, p2time);
             break;
         case 3:
             p2time = pos ? p2time + (mult * 1000UL) : mult * 1000UL > p2time ? 0 : p2time - (mult * 1000UL);
+            p2time = p2time > 5999000UL ? 5999000UL : p2time;
             display(TM2, p2time);
             break;
         case 4:
             p1bonus = pos ? p1bonus + (mult * 1000UL) : mult * 1000UL > p1bonus ? 0 : p1bonus - (mult * 1000UL);
+            p1bonus = p1bonus > 300000UL ? 300000UL : p1bonus;
             display(TM1, p1bonus);
             break;
         case 5:
             p2bonus = pos ? p2bonus + (mult * 1000UL) : mult * 1000UL > p2bonus ? 0 : p2bonus - (mult * 1000UL);
+            p2bonus = p2bonus > 300000UL ? 300000UL : p2bonus;
             display(TM2, p2bonus);
             break;
+        case 6:
+            delay = pos;
+            alphaDisplay();
     }
 }
 
@@ -140,8 +163,8 @@ void loop() {
             delay(250);
         }
         else if (digitalRead(enter) == HIGH) {
-            // keep set between 0 and 5, inclusively
-            set = (set + 1) % 6;
+            // keep set between 0 and 6, inclusively
+            set = (set + 1) % 7;
             if (set == 4) {
                 display(TM1, p1bonus);
                 display(TM2, p2bonus);
@@ -149,6 +172,8 @@ void loop() {
             else if (set == 0) {
                 display(TM1, p1time);
                 display(TM2, p2time);
+            } else if (set == 6) {
+                alphaDisplay();
             }
             delay(250);
         }
@@ -181,6 +206,11 @@ void loop() {
         while (p1time > 0 && p2time > 0) {
             unsigned long now = millis();
             unsigned long timeSpent = now - turnStart;
+            // handling delay
+            if (delay == true) {
+                unsigned long currentDelay = turn == 1 ? p1bonus : p2bonus;
+                timeSpent = now - turnStart <= currentDelay ? 0 : now - turnStart - currentDelay;
+            }
             // pause timers
             if (digitalRead(enter) == HIGH) {
                 delay(1000);
@@ -198,7 +228,9 @@ void loop() {
                 p1time = (timeSpent > timeStart) ? 0 : timeStart - timeSpent;
                 // when player one presses their button
                 if (digitalRead(player1) == HIGH) {
-                    p1time += p1bonus;
+                    if (delay == false) {
+                        p1time += p1bonus;
+                    }
                     turn = 2;
                     ledToggle(2);
                     timeStart = p2time;
@@ -212,11 +244,13 @@ void loop() {
                 }
             }
             // run timer for player two
-            else {
+            else if (turn == 2) {
                 p2time = (timeSpent > timeStart) ? 0 : timeStart - timeSpent;
                 // when player two presses their button
                 if (digitalRead(player2) == HIGH) {
-                    p2time += p2bonus;
+                    if (delay == false) {
+                        p2time += p2bonus;
+                    }
                     turn = 1;
                     ledToggle(1);
                     timeStart = p1time;
