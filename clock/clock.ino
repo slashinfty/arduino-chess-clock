@@ -30,7 +30,7 @@ unsigned long p2bonus = 0UL; // milliseconds for player two's bonus time
 unsigned long timeStart = 0UL; // milliseconds for player's timer at the start of a turn
 unsigned long turnStart = 0UL; // millis() for the start of a turn
 int lastTime = 0; // seconds of player's timer when loop last ran
-bool delay = false; // whether it is delay or bonus time
+bool delayTime = false; // whether it is delay or bonus time
 
 // function to display time
 void display(TM1637 tm, unsigned long ms) {
@@ -58,7 +58,7 @@ void display(TM1637 tm, unsigned long ms) {
 void alphaDisplay() {
     TM1.clearDisplay();
     TM2.clearDisplay();
-    if (delay == true) {
+    if (delayTime == true) {
         TM1.display(3, 13);
         TM2.display(3, 13);
     } else {
@@ -105,7 +105,7 @@ void adjust(int opt, int val) {
             display(TM2, p2bonus);
             break;
         case 6:
-            delay = pos;
+            delayTime = pos;
             alphaDisplay();
     }
 }
@@ -207,7 +207,7 @@ void loop() {
             unsigned long now = millis();
             unsigned long timeSpent = now - turnStart;
             // handling delay
-            if (delay == true) {
+            if (delayTime == true) {
                 unsigned long currentDelay = turn == 1 ? p1bonus : p2bonus;
                 timeSpent = now - turnStart <= currentDelay ? 0 : now - turnStart - currentDelay;
             }
@@ -228,7 +228,7 @@ void loop() {
                 p1time = (timeSpent > timeStart) ? 0 : timeStart - timeSpent;
                 // when player one presses their button
                 if (digitalRead(player1) == HIGH) {
-                    if (delay == false) {
+                    if (delayTime == false) {
                         p1time += p1bonus;
                     }
                     turn = 2;
@@ -248,7 +248,7 @@ void loop() {
                 p2time = (timeSpent > timeStart) ? 0 : timeStart - timeSpent;
                 // when player two presses their button
                 if (digitalRead(player2) == HIGH) {
-                    if (delay == false) {
+                    if (delayTime == false) {
                         p2time += p2bonus;
                     }
                     turn = 1;
