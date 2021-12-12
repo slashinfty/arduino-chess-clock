@@ -1,5 +1,7 @@
 // Grove_4Digital_Display library
 #include <TM1637.h>
+// EEPROM
+#include <EEPROM.h>
 
 // pin numbers
 int minus5 = 2; // subtracts 5 from current setting
@@ -23,14 +25,22 @@ TM1637 TM2(CLK2, DIO2);
 // global variables
 int turn = 0; // 0 for setup, 1 for player one's turn, 2 for player two's turn
 int set = 0; // 0-5, inclusive
-unsigned long p1time = 600000UL; // milliseconds for player one's timer
-unsigned long p2time = 600000UL; // milliseconds for player two's timer
+unsigned long p1time = 0UL; // milliseconds for player one's timer
+unsigned long p2time = 0UL; // milliseconds for player two's timer
 unsigned long p1bonus = 0UL; // milliseconds for player one's bonus time
 unsigned long p2bonus = 0UL; // milliseconds for player two's bonus time
+bool delayTime = false; // whether it is delay or bonus time
 unsigned long timeStart = 0UL; // milliseconds for player's timer at the start of a turn
 unsigned long turnStart = 0UL; // millis() for the start of a turn
 int lastTime = 0; // seconds of player's timer when loop last ran
-bool delayTime = false; // whether it is delay or bonus time
+
+void store() {
+    EEPROM.put(0, p1time);
+    EEPROM.put(4, p2time);
+    EEPROM.put(8, p1bonus);
+    EEPROM.put(12, p2bonus);
+    EEPROM.put(16, delayTime);
+}
 
 // function to display time
 void display(TM1637 tm, unsigned long ms) {
@@ -108,6 +118,7 @@ void adjust(int opt, int val) {
             delayTime = pos;
             alphaDisplay();
     }
+    store();
 }
 
 // function to light LED for player whose turn it is
@@ -123,6 +134,13 @@ void ledToggle(int player) {
 }
 
 void setup() {
+    // recover previous settings
+    EEPROM.get(0, p1time);
+    EEPROM.get(4, p2time);
+    EEPROM.get(8, p1bonus);
+    EEPROM.get(12, p2bonus);
+    EEPROM.get(16, delayTime);
+
     // initialize displays
     TM1.init();
     TM1.set(2);
